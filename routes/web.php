@@ -14,3 +14,30 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
+$router->group(['prefix' => 'auth'], function () use ($router) {
+    $router->post('/sign_in', [
+        'uses' => 'AuthController@sign_in'
+    ]);
+
+    $router->post('/sign_up', [
+        'uses' => 'AuthController@sign_up'
+    ]);
+});
+
+$router->group(['prefix' => 'urls'], function () use ($router) {
+    $router->post('/', [
+        'middleware' => 'auth',
+        'uses' => 'UrlController@store'
+    ]);
+
+    $router->post('/sign_up', [
+        'uses' => 'AuthController@sign_up'
+    ]);
+});
+
+$router->group(['domain' => '{subdomain}.localhost'], function () use ($router) {
+    $router->get('/r/{short_url_identifier}', [
+        'uses' => 'UrlController@show'
+    ]);
+});

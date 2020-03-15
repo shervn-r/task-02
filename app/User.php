@@ -29,4 +29,12 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     protected $hidden = [
         'password',
     ];
+
+    /**
+     * Get the urls for the user.
+     */
+    public function urls()
+    {
+        return $this->hasMany('App\Url');
+    }
 }
