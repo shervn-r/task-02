@@ -1,24 +1,71 @@
-# Lumen PHP Framework
+# Task 2 - URL-Shortner
+-----
 
-[![Build Status](https://travis-ci.org/laravel/lumen-framework.svg)](https://travis-ci.org/laravel/lumen-framework)
-[![Total Downloads](https://poser.pugx.org/laravel/lumen-framework/d/total.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/lumen-framework/v/stable.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![License](https://poser.pugx.org/laravel/lumen-framework/license.svg)](https://packagist.org/packages/laravel/lumen-framework)
+### Installation
 
-Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
+1. Run `compose install` in order to install required packages.
+2. Run below command to serve the project locally.
+    ```
+   php -S localhost:8000 -t ./public
+   ```
 
-## Official Documentation
+### Configuration
 
-Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
+1. The root directory of application contains a `.env.example`. Rename the `.env.example` file to `.env`.
+2. Set the application key (`APP_KEY`) to a randomly generated 32 characters long string in `.env` file. 
+**If the application key is not set, the user encrypted data will not be secure!**  
 
-## Contributing
 
-Thank you for considering contributing to Lumen! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Authentication
 
-## Security Vulnerabilities
+For the authentication, I decided to go with JWT.
 
-If you discover a security vulnerability within Lumen, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+1. JWT works with a secret key. Add a 30 characters random string to the `JWT_SECRET` as:
+    ```
+   JWT_SECRET=uflWMsDJdKFLge6pjX0qLBJvdDUHJK
+   ```
 
-## License
+### Database
 
-The Lumen framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. Create a SQLite database by using the `touch database/database.sqlite` command. Configure the environment
+ variables to point to this newly created by using the database's absolute path and commenting unnecessary 
+ variables out.
+    ```
+   DB_CONNECTION=sqlite
+   #DB_HOST=127.0.0.1
+   #DB_PORT=3306
+   DB_DATABASE=/absolute/path/to/database.sqlite
+   #DB_USERNAME=homestead
+   #DB_PASSWORD=secret
+   ```
+
+2. Run all of the migration files by executing `migrate` Artisan command:
+    ```
+   php artisan migrate
+   ```
+3. Use the `db:seed` command as provided below to seed the database.
+    ```
+   php artisan db:seed
+   ``` 
+
+
+### Queues
+
+This project makes use of Redis queue driver to have faster redirection and defer processing clicks task. So
+make sure you have redis installed on your operating system. If not you can visit 
+[Redis Download page](https://redis.io/download) to have installed.
+
+1. Change Redis-related environment variable in `.env` file as stated below:
+    ```
+   QUEUE_CONNECTION=redis
+   ```
+   and 
+    ```
+   REDIS_CLIENT=predis
+   ```
+2. Run `redis-server` in your terminal to start Redis.
+3. Run Queue worker so as to process the jobs (here we have only one job and that is named `ProcessClick`). 
+ You may run the worker using the `queue:work` command:
+    ```
+   php artisan queue:work
+   ```
