@@ -24,7 +24,8 @@ $app = new Laravel\Lumen\Application(
 );
 
  $app->withFacades(true, [
-     Jenssegers\Agent\Facades\Agent::class => 'Agent'
+     Jenssegers\Agent\Facades\Agent::class => 'Agent',
+     \Illuminate\Support\Facades\Redis::class => 'Redis'
  ]);
 
  $app->withEloquent();
@@ -93,9 +94,10 @@ $app->configure('app');
 |
 */
 
-// $app->register(App\Providers\AppServiceProvider::class);
+ $app->register(App\Providers\AppServiceProvider::class);
  $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
+ $app->register(Illuminate\Redis\RedisServiceProvider::class);
  $app->register(Jenssegers\Agent\AgentServiceProvider::class);
 
 /*

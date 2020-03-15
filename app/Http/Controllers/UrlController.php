@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 
-use App\Click;
+use App\Jobs\ProcessClick;
 use App\Url;
 use Illuminate\Http\Request;
+use Illuminate\Queue\Queue;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use Jenssegers\Agent\Agent;
 
 class UrlController extends Controller
@@ -33,22 +35,9 @@ class UrlController extends Controller
             'short_url_identifier' => 'exists:urls'
         ]);
         $url = Url::where('short_url_identifier', $short_url_identifier)->first();
-
         $agent = new Agent();
 
-        if ($agent->isDesktop()) {
-            $device = 'desktop';
-        } else if ($agent->isMobile()) {
-            $device = 'mobile';
-        }
-        $browser = $agent->browser();
-
-        $click = new Click;
-
-        $click->browser = $browser;
-        $click->device = $device;
-
-        $url->clicks()->save($click);
+        $this->dispatch(new ProcessClick($agent, $url));
 
         return redirect()->to($url->long_url);
     }

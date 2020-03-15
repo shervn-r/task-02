@@ -8,8 +8,11 @@
         "php": "^7.2.5",
         "doctrine/dbal": "^2.10",
         "firebase/php-jwt": "^5.1",
+        "illuminate/redis": "^7.1",
         "jenssegers/agent": "^2.6",
-        "laravel/lumen-framework": "^7.0"
+        "laravel/lumen-framework": "^7.0",
+        "predis/predis": "^1.1",
+        "ramsey/uuid": "^3.9"
     },
     "require-dev": {
         "fzaninotto/faker": "^1.9.1",
