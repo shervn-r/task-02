@@ -6,9 +6,7 @@ namespace App\Http\Controllers;
 use App\Jobs\ProcessClick;
 use App\Url;
 use Illuminate\Http\Request;
-use Illuminate\Queue\Queue;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 use Jenssegers\Agent\Agent;
 
 class UrlController extends Controller
