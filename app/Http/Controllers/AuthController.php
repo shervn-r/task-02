@@ -50,13 +50,13 @@ class AuthController extends Controller
         if ($request->password == Crypt::decrypt($user->password)) {
             return response()->json([
                 'meta' => [
-                    'code' => 200,
-                    'jwt' => $jwt = JWT::encode([
+                    'api_token' => $jwt = JWT::encode([
                         'iss' => 'task-02-code',
                         'sub' => $user->id,
                         'iat' => time(),
                         'exp' => time() + 60*60
                     ], env('JWT_SECRET')),
+                    'code' => 200,
                     'message' => 'OK'
                 ], 'data' => [
 
