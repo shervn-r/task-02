@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 
 use App\Jobs\ProcessClick;
 use App\Url;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Jenssegers\Agent\Agent;
 
 class UrlController extends Controller
@@ -19,6 +21,69 @@ class UrlController extends Controller
     public function __construct()
     {
         //
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function index(Request $request)
+    {
+        $this->validate($request, [
+            'browser' => [
+//                Rule::in(Agent::getBrowsers()),
+                'string'
+            ],
+            'created_at' => [
+                Rule::in(['today', 'yesterday', 'last_week', 'last_month']),
+                'string'
+            ],
+            'device' => [
+                Rule::in(['desktop', 'mobile']),
+                'string'
+            ]
+        ]);
+
+        $user = Auth::user();
+        $user_urls_modified = [];
+
+        foreach ($user->urls as $url) {
+            $url['clicks'] = $url->clicks();
+            if ($request->has('browser')) {
+                $url['clicks'] = $url['clicks']->where('browser', $request->input('browser'));
+            }
+            if ($request->has('device')) {
+                $url['clicks'] = $url['clicks']->where('device', $request->input('device'));
+            }
+            if ($request->has('created_at')) {
+                if ($request->input('created_at') == 'today') {
+                    $url['clicks'] = $url['clicks']->where('created_at', '>', Carbon::today()
+                        ->hour('00')->minute('00')->second('00'));
+                } else if ($request->input('created_at') == 'yesterday') {
+                    $url['clicks'] = $url['clicks']->where('created_at', '>', Carbon::yesterday()
+                        ->hour('00')->minute('00')->second('00'));
+                } else if ($request->input('created_at') == 'last_week') {
+                    $url['clicks'] = $url['clicks']->where('created_at', '>', Carbon::now()->subDays(7)
+                        ->hour('00')->minute('00')->second('00'));
+                } else if ($request->input('created_at') == 'last_month') {
+                    $url['clicks'] = $url['clicks']->where('created_at', '>', Carbon::now()->subDays(30)
+                        ->hour('00')->minute('00')->second('00'));
+                }
+            }
+            $url['click_count'] = $url['clicks']->count();
+            $url['clicks'] = $url['clicks']->get();
+            array_push($user_urls_modified, $url);
+        }
+
+        return response()->json([
+            'meta' => [
+                'code' => 200,
+                'message' => 'OK'
+            ], 'data' => [
+                'urls' => $user_urls_modified
+            ]
+        ]);
     }
 
     /**

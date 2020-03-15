@@ -31,8 +31,9 @@ $router->group(['prefix' => 'urls'], function () use ($router) {
         'uses' => 'UrlController@store'
     ]);
 
-    $router->post('/sign_up', [
-        'uses' => 'AuthController@sign_up'
+    $router->get('/', [
+        'middleware' => 'auth',
+        'uses' => 'UrlController@index'
     ]);
 });
 
