@@ -6,6 +6,7 @@ use App\User;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -26,66 +27,52 @@ class AuthController extends Controller
      */
     public function sign_in(Request $request)
     {
-        $this->validate($request, [
+        $rules = [
             'email' => 'email|required_without:username',
-            'username' => 'required_without:email',
-            'password' =>'required'
-        ]);
+            'password' =>'required',
+            'username' => 'required_without:email'
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->failure(422, [], $validator->errors()->toArray(), $request);
+        }
 
         $user = User::where('email', $request->input('email'))
             ->orWhere('username', $request->input('username'))
             ->first();
 
         if (!$user) {
-            return response()->json([
-                'meta' => [
-                    'code' => 400,
-                    'message' => 'Bad Request'
-                ], 'data' => [
-
-                ]
-            ]);
+            return response()->failure(404, [], ['Not Found.'], $request);
         }
 
         if ($request->password == Crypt::decrypt($user->password)) {
-            return response()->json([
-                'meta' => [
-                    'api_token' => $jwt = JWT::encode([
-                        'iss' => 'task-02-code',
-                        'sub' => $user->id,
-                        'iat' => time(),
-                        'exp' => time() + 60*60
-                    ], env('JWT_SECRET')),
-                    'code' => 200,
-                    'message' => 'OK'
-                ], 'data' => [
-
-                ]
-            ]);
+            return response()->success(200, ['api_token' => JWT::encode([
+                'iss' => 'task-02-code',
+                'sub' => $user->id,
+                'iat' => time(),
+                'exp' => time() + 600*600
+            ], env('JWT_SECRET'))], ['OK.'], $request);
         } else {
-            return response()->json([
-                'meta' => [
-                    'code' => 400,
-                    'message' => 'Bad Request'
-                ], 'data' => [
-
-                ]
-            ]);
+            return response()->failure(404, [], ['Not Found.'], $request);
         }
     }
 
+
     /**
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Illuminate\Validation\ValidationException
+     * @return mixed
      */
     public function sign_up(Request $request)
     {
-        $this->validate($request, [
+        $rules = [
             'email' => 'email|required|unique:users,email',
             'username' => 'required|unique:users,username',
             'password' =>'confirmed|required'
-        ]);
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->failure(422, [], $validator->errors()->toArray(), $request);
+        }
 
         $user = new User;
 
@@ -95,13 +82,6 @@ class AuthController extends Controller
 
         $user->save();
 
-        return response()->json([
-            'meta' => [
-                'code' => 200,
-                'message' => 'OK'
-            ], 'data' => [
-                'user' => $user
-            ]
-        ]);
+        return response()->success(201, ['user' => $user], ['Created.'], $request);
     }
 }
