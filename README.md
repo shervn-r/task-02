@@ -43,11 +43,7 @@ For the authentication, I decided to go with JWT.
     ```
    php artisan migrate
    ```
-3. Use the `db:seed` command as provided below to seed the database.
-    ```
-   php artisan db:seed
-   ``` 
-
+   
 
 ### Queues
 
@@ -69,3 +65,8 @@ make sure you have redis installed on your operating system. If not you can visi
     ```
    php artisan queue:work
    ```
+
+### Postman Collection
+Follow this [Link](https://www.getpostman.com/collections/2f5f8d8439ec9e66ea40) to access API collection in 
+Postman or this [Published Documents Link](https://documenter.getpostman.com/view/3102731/SzS2yp7F?version=latest) in 
+order to access it in your browser.
