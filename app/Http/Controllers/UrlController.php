@@ -44,7 +44,8 @@ class UrlController extends Controller
             'device' => [
                 Rule::in(['desktop', 'mobile', 'tablet']),
                 'string'
-            ]
+            ],
+            'unique_users' => 'boolean'
         ];
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
@@ -56,7 +57,11 @@ class UrlController extends Controller
 
         foreach ($user->urls as $url) {
             $url['short_url'] = generate_short_url($url['long_url'], $request->fullUrl(), $url['short_url_identifier']);
-            $url['clicks'] = $url->clicks();
+            if ($request->input('unique_users') == true) {
+                $url['clicks'] = $url->clicks()->groupBy('fingerprint');
+            } else {
+                $url['clicks'] = $url->clicks();
+            }
             if ($request->has('browser')) {
                 $url['clicks'] = $url['clicks']->where('browser', $request->input('browser'));
             }
