@@ -31,6 +31,7 @@ class UrlController extends Controller
      */
     public function index(Request $request)
     {
+        echo $request->fingerprint();
         $rules = [
             'browser' => [
                 Rule::in(array_keys(Agent::getBrowsers())),
@@ -114,7 +115,7 @@ class UrlController extends Controller
         $url = Url::where('short_url_identifier', $short_url_identifier)->first();
         $agent = new Agent();
 
-        $this->dispatch(new ProcessClick($agent, $url));
+        $this->dispatch(new ProcessClick($agent, $request->fingerprint(), $url));
 
         return redirect()->to($url->long_url);
     }
@@ -128,7 +129,7 @@ class UrlController extends Controller
     {
         $rules = [
             'long_url' => 'required|string',
-            'suggested_short_url_identifier' => 'string',
+            'suggested_short_url_identifier' => 'string'
         ];
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {

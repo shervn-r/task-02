@@ -9,17 +9,20 @@ use Jenssegers\Agent\Agent;
 class ProcessClick extends Job
 {
     protected $agent;
+    protected $fingerprint;
     protected $url;
 
     /**
      * Create a new job instance.
      *
      * @param Agent $agent
+     * @param string $fingerprint
      * @param Url $url
      */
-    public function __construct(Agent $agent, Url $url)
+    public function __construct(Agent $agent, string $fingerprint, Url $url)
     {
         $this->agent = $agent;
+        $this->fingerprint = $fingerprint;
         $this->url = $url;
     }
 
@@ -45,6 +48,7 @@ class ProcessClick extends Job
 
         $click->browser = $browser;
         $click->device = $device;
+        $click->fingerprint = $this->fingerprint;
 
         $this->url->clicks()->save($click);
     }
