@@ -64,17 +64,30 @@ class UrlController extends Controller
             }
             if ($request->has('created_at')) {
                 if ($request->input('created_at') == 'today') {
-                    $url['clicks'] = $url['clicks']->where('created_at', '>', Carbon::today()
-                        ->hour('00')->minute('00')->second('00'));
+                    $url['clicks'] = $url['clicks']->where([
+                        ['created_at', '>', Carbon::today()->hour('00')->minute('00')->second('00')]
+                    ]);
                 } else if ($request->input('created_at') == 'yesterday') {
-                    $url['clicks'] = $url['clicks']->where('created_at', '>', Carbon::yesterday()
-                        ->hour('00')->minute('00')->second('00'));
+                    $url['clicks'] = $url['clicks']->where([
+                        ['created_at', '>=', Carbon::yesterday()
+                            ->hour('00')->minute('00')->second('00')],
+                        ['created_at', '<', Carbon::today()
+                            ->hour('00')->minute('00')->second('00')]
+                    ]);
                 } else if ($request->input('created_at') == 'last_week') {
-                    $url['clicks'] = $url['clicks']->where('created_at', '>', Carbon::now()->subDays(7)
-                        ->hour('00')->minute('00')->second('00'));
+                    $url['clicks'] = $url['clicks']->where([
+                        ['created_at', '>=', Carbon::now()->subDays(7)
+                            ->hour('00')->minute('00')->second('00')],
+                        ['created_at', '<', Carbon::now()->today()
+                            ->hour('00')->minute('00')->second('00')]
+                    ]);
                 } else if ($request->input('created_at') == 'last_month') {
-                    $url['clicks'] = $url['clicks']->where('created_at', '>', Carbon::now()->subDays(30)
-                        ->hour('00')->minute('00')->second('00'));
+                    $url['clicks'] = $url['clicks']->where([
+                        ['created_at', '>', Carbon::now()->subDays(30)
+                            ->hour('00')->minute('00')->second('00')],
+                        ['created_at', '<', Carbon::now()->today()
+                            ->hour('00')->minute('00')->second('00')]
+                    ]);
                 }
             }
             $url['clicks'] = $url['clicks']->get();
