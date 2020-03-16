@@ -31,9 +31,9 @@ class UrlController extends Controller
      */
     public function index(Request $request)
     {
-        $this->validate($request, [
+        $rules = [
             'browser' => [
-//                Rule::in(Agent::getBrowsers()),
+                Rule::in(['today', 'yesterday', 'last_week', 'last_month']),
                 'string'
             ],
             'created_at' => [
@@ -44,12 +44,17 @@ class UrlController extends Controller
                 Rule::in(['desktop', 'mobile']),
                 'string'
             ]
-        ]);
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->failure(422, [], $validator->errors()->toArray(), $request);
+        }
 
         $user = Auth::user();
         $user_urls_modified = [];
 
         foreach ($user->urls as $url) {
+            $url['short_url'] = generate_short_url($url['long_url'], $request->fullUrl(), $url['short_url_identifier']);
             $url['clicks'] = $url->clicks();
             if ($request->has('browser')) {
                 $url['clicks'] = $url['clicks']->where('browser', $request->input('browser'));
@@ -77,14 +82,7 @@ class UrlController extends Controller
             array_push($user_urls_modified, $url);
         }
 
-        return response()->json([
-            'meta' => [
-                'code' => 200,
-                'message' => 'OK'
-            ], 'data' => [
-                'urls' => $user_urls_modified
-            ]
-        ]);
+        return response()->success(200, ['urls' => $user_urls_modified], ['OK'], $request);
     }
 
     /**
@@ -146,7 +144,7 @@ class UrlController extends Controller
 
         $url->short_url = generate_short_url($url->long_url, $request->fullUrl(), $url->short_url_identifier);
 
-        return response()->success(201, ['url' => $url, 'user' => $user], ['Created.'], $request);
+        return response()->success(201, ['url' => $url, 'user' => $user], ['Created'], $request);
     }
 }
 
