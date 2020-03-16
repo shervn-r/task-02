@@ -8,6 +8,7 @@ use App\Url;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Jenssegers\Agent\Agent;
 
@@ -112,10 +113,14 @@ class UrlController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $rules = [
             'long_url' => 'required|string',
             'suggested_short_url_identifier' => 'string',
-        ]);
+        ];
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->failure(422, [], $validator->errors()->toArray(), $request);
+        }
 
         $url = new Url;
 
@@ -130,49 +135,45 @@ class UrlController extends Controller
             }
         } else {
             do {
-                $short_url_identifier = generate_short_url(10);
+                $short_url_identifier = generate_short_url_identifier(10);
             } while (Url::where('short_url_identifier', $short_url_identifier)->exists());
         }
-
-        $request_fill_url_scheme = parse_url($request->fullUrl())['scheme'];
-        $request_fill_url_host = parse_url($request->fullUrl())['host'];
-        $request_fill_url_port = parse_url($request->fullUrl())['port'];
-        $request_fill_url_path = parse_url($request->fullUrl())['path'];
-
-        $long_url_scheme = parse_url($url->long_url)['scheme'];
-        $long_url_host = parse_url($url->long_url)['host'];
-        $long_url_host_exploded = explode(".", $long_url_host);
-        $long_url_host_part_1 = $long_url_host_exploded[sizeof($long_url_host_exploded)-2];
-        $long_url_host_part_2 = $long_url_host_exploded[sizeof($long_url_host_exploded)-1];
-        $long_url_path = parse_url($url->long_url)['path'];
 
         $url->short_url_identifier = $short_url_identifier;
 
         $user = Auth::user();
         $user->urls()->save($url);
 
-        $url->short_url = $request_fill_url_scheme.'://'
-            .$long_url_host_part_1.'.'
-            .$request_fill_url_host.':'
-            . $request_fill_url_port.'/'.
-            'r'.'/'.
-            $short_url_identifier;
+        $url->short_url = generate_short_url($url->long_url, $request->fullUrl(), $url->short_url_identifier);
 
-        return response()->json([
-            'meta' => [
-                'code' => 200,
-                'message' => 'OK'
-            ], 'data' => [
-                'url' => $url,
-                'user' => $user
-            ]
-        ]);
+        return response()->success(201, ['url' => $url, 'user' => $user], ['Created.'], $request);
     }
 }
 
-function generate_short_url($length = 10) {
+function generate_short_url_identifier($length = 10) {
     return substr(str_shuffle(str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyz',
         ceil($length/strlen($x)) )),0, $length);
+}
+
+function generate_short_url($long_url, $request_full_url, $short_url_identifier) {
+    $request_fill_url_scheme = parse_url($request_full_url)['scheme'];
+    $request_fill_url_host = parse_url($request_full_url)['host'];
+    $request_fill_url_port = parse_url($request_full_url)['port'];
+    $request_fill_url_path = parse_url($request_full_url)['path'];
+
+    $long_url_scheme = parse_url($long_url)['scheme'];
+    $long_url_host = parse_url($long_url)['host'];
+    $long_url_host_exploded = explode(".", $long_url_host);
+    $long_url_host_part_1 = $long_url_host_exploded[sizeof($long_url_host_exploded)-2];
+    $long_url_host_part_2 = $long_url_host_exploded[sizeof($long_url_host_exploded)-1];
+    $long_url_path = parse_url($long_url)['path'];
+
+    return $request_fill_url_scheme.'://'
+        .$long_url_host_part_1.'.'
+        .$request_fill_url_host.':'
+        . $request_fill_url_port.'/'.
+        'r'.'/'.
+        $short_url_identifier;
 }
 
 
