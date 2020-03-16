@@ -33,7 +33,7 @@ class UrlController extends Controller
     {
         $rules = [
             'browser' => [
-                Rule::in(['today', 'yesterday', 'last_week', 'last_month']),
+                Rule::in(array_keys(Agent::getBrowsers())),
                 'string'
             ],
             'created_at' => [
