@@ -33,8 +33,12 @@ class ProcessClick extends Job
         $browser = $this->agent->browser();
         if ($this->agent->isDesktop()) {
             $device = 'desktop';
-        } else if ($this->agent->isMobile()) {
+        } else if ($this->agent->isMobile() || $this->agent->isPhone()) {
             $device = 'mobile';
+        } else if ($this->agent->isTablet()) {
+            $device = 'tablet';
+        } else {
+            $device = null;
         }
 
         $click = new Click;

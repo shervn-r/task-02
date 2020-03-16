@@ -41,7 +41,7 @@ class UrlController extends Controller
                 'string'
             ],
             'device' => [
-                Rule::in(['desktop', 'mobile']),
+                Rule::in(['desktop', 'mobile', 'tablet']),
                 'string'
             ]
         ];
@@ -77,9 +77,11 @@ class UrlController extends Controller
                         ->hour('00')->minute('00')->second('00'));
                 }
             }
-            $url['click_count'] = $url['clicks']->count();
             $url['clicks'] = $url['clicks']->get();
-            array_push($user_urls_modified, $url);
+            $url['clicks_count'] = $url['clicks']->count();
+            if ($url['clicks_count'] > 0){
+                array_push($user_urls_modified, $url);
+            }
         }
 
         return response()->success(200, ['urls' => $user_urls_modified], ['OK'], $request);
