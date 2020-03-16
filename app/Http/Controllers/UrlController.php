@@ -83,7 +83,7 @@ class UrlController extends Controller
                     ]);
                 } else if ($request->input('created_at') == 'last_month') {
                     $url['clicks'] = $url['clicks']->where([
-                        ['created_at', '>', Carbon::now()->subDays(30)
+                        ['created_at', '>=', Carbon::now()->subDays(30)
                             ->hour('00')->minute('00')->second('00')],
                         ['created_at', '<', Carbon::now()->today()
                             ->hour('00')->minute('00')->second('00')]
